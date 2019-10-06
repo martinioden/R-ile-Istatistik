@@ -1,0 +1,114 @@
+#R ile 2×2’lik Tabloların Çözümlenmesi
+
+#Önemli not!!!
+#Eğer tablo içinde en az 1 tane 5 ve 5'ten küçük gözlem değerine sahipse Fisher'ın Ki Kare Testi,
+#Eğer tablolarda değerlerinin hepsi 5’ten büyükse ve beklenen sıklıkları 25’den küçükse Süreklilik Düzeltmeli(Yates) Ki Kare Testi,
+#Eğer beklenen sıklıkları 25’den büyükse Pearson Ki Kare Testi uygulanabilir.
+
+
+##Çözümleme(1) Fisher'ın Ki Kare Testi...
+#verilerimizi girelim
+veri <- matrix(c(4,82,75,15), nrow=2, dimnames=list(c("sigara içmiyor", "sigara içiyor"), c("kanser var", "kanser yok")))
+veri # 5 den küçük gözlem olduğu için Fisher'ın ki karesini yapmamız lazım.
+
+#Hipotezlerimizi kuralım...
+#H0: Sigara içme durumu ile kanser olma arasında bir ilişki yoktur.
+#H1: Sigara içme durumu ile kanser olma arasında bir ilişki vardır.
+#Hipotezi kurduğumuza göre şimdi test edebiliriz.
+
+fisher.test(veri)
+#p değerine baktığımızda ?? = 0.05 değerinden çok küçük olduğunu bu sebepten dolayı yokluk hipotezimizin(H0) reddedileceğini %5 anlamlılık düzeyinde istatistiksel olarak söyleyebiliriz. 
+
+#O zaman sigara içme durumu ile kanser olma arasında bir ilişki var bunu hipotezden söyleyebiliyoruz.
+#Peki bu ilişkinin miktarı nedir ve bu ilişki miktarı anlamlı mıdır?
+#Verilerimiz sınıflanabilir(nominal) olduğu için Cramer’s V ile bu ilişki miktarı ölçülebilir.
+#İlişkinin anlamlılık hipotezini kuralım.
+#H0: Sigara içme durumu ile kanser olma arasındaki ilişki anlamsızdır.(?? = 0)
+#H1: Sigara içme durumu ile kanser olma arasındaki ilişki anlamlıdır.(?? ??? 0)
+
+install.packages("DescTools")
+library(DescTools)
+CramerV(veri, conf.level = 0.95) # 0.79luk ilişki ve anlamlı.
+
+#Yukarıdaki R çıktısında bu ilişkinin anlamlılığını ölçmek için bir güven aralığı verildiğini görüyoruz.
+#Güven aralığı yokluk hipotezindeki 0 değerini içermediği için yokluk hipotezimizin yani sigara içme durumu ile kanser olma arasındaki ilişki anlamsızdır hipoteziniz reddedildiği görülmektedir.
+#Öyleyse toparlayacak olursak.
+#Sigara ile kanser arasındaki ilişkinin %79 ve anlamlı olduğu %5 güven düzeyinde istatistiksel olarak söylenebilir.
+#***Genel Yorum: Sigara ile kanser arasında bir ilişki olduğu ve bu ilişkinin anlamlı ve %79’luk güçlü sayılabilecek bir ilişkiye sahip olduğunu %5 güven düzeyinde istatistiksel olarak söyleyebiliriz.
+
+
+##Çözümleme(2) Süreklilik Düzeltmeli(Yates) Ki Kare Testi...
+#H0: Ailede kanser olma durumu ile kişinin kanser olması arasında bir ilişki yoktur.
+#H1: Ailede kanser olma durumu ile kişinin kanser olması arasında bir ilişki vardır.
+
+veri2 <- matrix(c(34,13,19,34), nrow = 2, dimnames=list(c("ailede yok", "ailede var"), c("kanser yok", "kanser var")))
+veri2
+
+#Yukarıdaki tabloda değerlerin 5’den büyük olduğu görülüyor ama beklenen sıklıkları neler?
+satir1 <- 34+19
+satir1
+satir2 <- 13+34
+satir2
+sutun1 <- 34+13
+sutun1
+sutun2 <- 19+34
+sutun2
+n <- sutun1+sutun2
+bek_sikliklar <- matrix(c((sutun1*satir1)/n,(sutun1*satir2)/n,(sutun2*satir1)/n,(sutun2*satir2)/n),
+                        nrow = 2)
+bek_sikliklar
+
+#Yukarıdaki kodun çıktısına baktığımızda beklenen sıklıkların 3 tanesinin 25’ten küçük olduğu görülüyor.
+#Öyleyse Süreklilik Düzeltmeli(Yates) Ki Kare yapmamız gerekmektedir.
+chisq.test(veri2, correct = T) #ilişki var
+#Yukarıdaki R kodunda correct parametresine T yazınca Süreklilik Düzeltmeli Ki Kare yapıyor.
+
+#Yukarıdaki çıktıyı p değeri veya Ki Kare tablosu varsa Ki Kare tablosuyla test edebiliriz ama p değeriyle test etmek her zaman daha kolaydır. p = 0.0005 bu değer ?? = 0.05 değeriden küçük olduğu için yokluk hipotezi reddedilir. 
+
+#Öyleyse ailede kanser olma durumu ile kişinin kanser olması arasında bir ilişki olduğu %5 anlamlılık düzeyinde istatistiksel olarak söylenebilir.
+#Peki ilişki miktarı nedir ve anlamlı mıdır?
+
+#Verilerimiz sınıflanabilir(nominal) olduğu için Cramer’s V ile bu ilişki miktarı ölçülebilir. İlişkinin anlamlılık hipotezini kuralım.
+#H0: Ailede kanser olma durumu ile kişinin kanser olması arasındaki ilişki anlamsızdır.(?? = 0)
+#H1: Ailede kanser olma durumu ile kişinin kanser olması arasındaki ilişki anlamlıdır.(?? ??? 0)
+
+CramerV(veri2, conf.level = 0.95) #ilişki anlamlı
+
+#Yukarıdaki R çıktısında bu ilişkinin anlamlılığını ölçmek için bir güven aralığı verildiğini görüyoruz.
+#Güven aralığı yokluk hipotezindeki 0 değerini içermediği için yokluk hipotezimizin yani ailede kanser olma durumu ile kişinin kanser olması arasındaki ilişki anlamsızdır hipoteziniz reddedildiği görülmektedir.
+#Öyleyse toparlayacak olursak.
+#Ailede kanser olma durumu ile kişinin kanser olması arasındaki ilişki %36 ve anlamlı olduğu %5 güven düzeyinde istatistiksel olarak söylenebilir.
+#***Genel Yorum: Ailede kanser olma durumu ile kişinin kanser olması arasındaki %36’lık zayıf sayılabilir bir ilişki olduğu ve bu ilişkinin anlamlı olduğu %5 anlamlılık düzeyinde istatistiksel olarak söylenebilir.
+
+
+#Çözümleme(3) Pearson Ki Kare Testi... 
+#Çözümleme 2 ile aynı konuda olan başşka bir araştırma verileri ile çalışalım.
+#değerleri büyüttük...
+#H0: Ailede kanser olma durumu ile kişinin kanser olması arasında bir ilişki yoktur.
+#H1: Ailede kanser olma durumu ile kişinin kanser olması arasında bir ilişki vardır.
+
+veri3 <- matrix(c(41,26,72,60), nrow = 2, dimnames=list(c("ailede yok", "ailede var"), c("kanser yok", "kanser var")))
+veri3
+#Yukarıdaki tabloda değerlerin 5’den büyük olduğu görülüyor ama beklenen sıklıkları neler?
+
+satir1_1 <- 41+72
+satir2_1 <- 26+60                
+sutun1_1 <- 41+26                
+sutun2_1 <- 72+60                
+n1 <- sutun1_1+sutun2_1                
+bek_sikliklar_1 <- matrix(c((sutun1_1*satir1_1)/n1, 
+                            (sutun1_1*satir2_1)/n1,
+                            (sutun2_1*satir1_1)/n1,
+                            (sutun2_1*satir2_1)/n1), nrow = 2
+)                
+bek_sikliklar_1
+
+#Yukarıdaki çıktıya baktığımızda beklenen sıklıkların hepsinin 25’ten büyük olduğu görülüyor.
+#Öyleyse Pearson Ki Kare yapmamız lazım.
+
+chisq.test(veri3, correct = F)
+
+#Yukarıdaki çıktıyı p değeri veya Ki Kare tablosu varsa Ki Kare tablosuyla test edebiliriz ama p değeriyle test etmek her zaman daha kolaydır.
+#p = 0.3709 bu değer ?? = 0.05 değeriden büyük olduğu için yokluk hipotezi reddedilemez.
+#Yani ailede kanser olma durumu ile kişinin kanser olması arasında bir ilişki olmadığı %5 anlamlılık düzeyinde istatistiksel olarak söylenebilir.
+#Eğer ilişki yoksa miktarını ölçmek anlamsız olacağı için bu çözümleme burada bitmiş olur...
