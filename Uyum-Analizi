@@ -1,0 +1,80 @@
+#Uyum Analizi
+
+#Analitik çalışmaların ve istatistiğin temel amaçlarından birisi değişkenler arasındaki ilişkiyi incelemektir
+#Bu sayede değişkenler arasındaki ilişki keşfedilir ve analizi yapan kişi veri seti hakkında fikir sahibi olur.
+
+#İncelenen değişkenlerin kategorik olduğu durumlarda, değişkenler arasındaki ilişki genellikle ki-kare analizi ile incelenmektedir.
+#Ancak ki-kare analizi satır ve sütundaki kategori sayısının çok fazla olması halinde yorumlaması güç hale gelmektedir.
+#Bu durumda uyum analizi, kategorik verilerin yorumlanmasını kolaylaştıran ve veri analizine grafiksel yaklaşım sunan çok değişkenli bir analiz yöntemi olarak karşımıza çıkar.
+
+#Uyum analizinin temel amacı iki veya daha fazla kategorik değişken arasındaki ilişkiyi daha az boyutlu bir uzayda göstererek analiz etmektir.
+
+#
+#Uyum Analizi Hesaplama Akışı
+#1-Satır ve sütun profilleri hesaplanır.
+#2-Satır ve sütun profilleri iki-boyutlu uzayda ayrı ayrı resmedilir.
+#3-Satır ve sütun profilleri iki boyutlu ortak bir harita üzerinde gösterilir.
+
+#Uyum analizinde harita adı verilen bu grafiklerin gözlemlenen frekanslara göre değil,
+#frekansların satır içindeki önemini gösteren satır profillerine ve benzer şekilde frekansların sütun içindeki önemini gösteren sütun profillerine göre hazırlanmaktadır.
+#Bu nedenle Uyum Analizi’nin anlaşılabilmesi için profil, ağırlık, ki-kare uzaklığı ve inertia gibi dört temel kavram hakkında fikir sahibi olunmalıdır.
+
+
+
+#UYUM ANALİZİ R UYGULAMASI
+
+
+
+#Çalışmada “Telco Customer Churn” veri seti kullanılmıştır.
+#Veri setinde 16 kategorik, 3 sürekli bağımsız değişken bulunmakta ve bu değişkenler kullanılarak müşterinin churn edip etmediğinin yani ödeme yapıp yapmadığının tahminlenmesi amaçlanmaktadır.
+#verimizi yükleyelim (not: \ ları / ile değiştir.)
+data<-read.csv("C:/Users/Belgelerim/Desktop/uyum/Telco-Customer-Churn.csv") #csv dosyamızın yolu...
+
+
+#veri setinde bulunan değişkenler gösterilmiştir.
+colnames(data)
+
+
+#Çalışmada örnek olması amacıyla “PaymentMethod” ve “Contract” değişkenleri kullanılacaktır.
+
+#"PaymentMethod" ve "Contract" değişkenleri seçilmiştir.
+install.packages("dplyr")#dplyr  paketi yüklü olmayanlar için.
+library(dplyr)
+selected_columns=data %>%  select(PaymentMethod, Contract)
+
+
+#Seçilmiş veri setinin ilk 5 satırı gösterilmiştir.
+head(selected_columns)
+
+
+#Uyum Analizi uygulanabilmesi için veriler çapraz tabloya dönüştürülmüştür
+crosstab=table(data$PaymentMethod, data$Contract)
+crosstab
+
+
+#Veri, analiz yapılabilmesi için çapraz tablo haline dönüştürülmüştür.
+
+#Uyum Analizi için gerekli kütüphane eklenmiş ve analiz yapılmıştır.
+install.packages("FactoMiner")#FactoMiner kütüphanesi indrelim.
+library("FactoMineR")
+res.ca <- CA(crosstab, graph = FALSE)
+
+
+#“FactoMineR” kütüphanesinden oluşturulan Uyum Analizi sonucu yine aynı kütüphane ile görselleştirilebilmektedir.
+#Ancak “factoextra” kütüphanesi daha açıklayıcı grafikler sunmaktadır.
+install.packages("factoextra")
+#factoextra kütüphanesi eklenmiş ve Uyum Analizi görselleştirilmiştir.
+library("factoextra")
+fviz_ca_biplot(res.ca, repel = TRUE)
+
+
+#SONUÇ
+#Değişkenler Uyum Analizi’ne göre grafiklendirilmiştir.
+#Sonuçların daha kolay yorumlanabilmesi amacıyla koordinat düzleminin bölgelerini kümeler şeklinde ele alabiliriz.
+#Analize göre -genellikle- 
+#aylık kontratı olanlar elektronik çek,
+#kontratı 1 yıllık olanlar çek veya kredi kartı,
+#kontratı 2 yıllık olanlar ise banka havalesi ile ödeme yapmaktadır.
+
+
+#MS
